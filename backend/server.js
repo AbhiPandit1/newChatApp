@@ -18,6 +18,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware setup
 app.use(express.json()); // To parse JSON payloads
 app.use(cookieParser());
+app.use(cors());
 
 // Route setup
 app.use('/api/auth', authRoutes);

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import useConversation from '../src/zustland/useConversation';
 
+const backendapi = import.meta.env.VITE_BACKEND_URL;
+
 const useGetMessages = () => {
   const [loading, setLoading] = useState(false);
   const { messages, setMessages, selectedConversation } = useConversation();
@@ -10,7 +12,7 @@ const useGetMessages = () => {
     const getMessages = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/messages/${selectedConversation._id}`);
+        const res = await fetch(`${backendapi }/api/messages/${selectedConversation._id}`);
 
         const data = await res.json();
 

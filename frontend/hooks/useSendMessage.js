@@ -3,6 +3,8 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import useConversation from '../src/zustland/useConversation';
 
+const backendapi = import.meta.env.VITE_BACKEND_URL;
+
 const useSendMessage = () => {
   const [loading, setLoading] = useState(false);
   const { messages, setMessages, selectedConversation } = useConversation();
@@ -11,7 +13,7 @@ const useSendMessage = () => {
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/messages/send/${selectedConversation._id}`,
+        `${backendapi}/api/messages/send/${selectedConversation._id}`,
         {
           method: 'POST',
           headers: {
