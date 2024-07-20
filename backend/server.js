@@ -4,17 +4,25 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import http from 'http'; // Import http to create server if not using it directly from socket.js
 
+// Import routes
 import authRoutes from './routes/authRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 
-// Initialize environment variables
+// Import socket setup
+import { app, server } from './socket/socket.js';
+
+// Load environment variables from .env file
 dotenv.config();
 
-const app = express(); // Initialize express app
+// Define port and directory
 const PORT = process.env.PORT || 5000;
+
+// Compute __dirname equivalent for ES modules
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Middleware setup
 app.use(express.json()); // To parse JSON payloads
@@ -27,7 +35,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/users', userRoutes);
 
 // Serve static files
-app.use(express.static(path.join(__dirname, '/frontend/dist')));
+app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
 
 // Connect to MongoDB and start the server
 const startServer = async () => {
@@ -37,27 +45,12 @@ const startServer = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log(`MongoDB connected at ${process.env.MONGO_DB_URI}`);
-
-    // Create HTTP server
-    const server = http.createServer(app);
+    console.log(`MongoDB is connected to ${process.env.MONGO_DB_URI}`);
 
     // Start the server
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
-
-    // Optionally, handle server shutdown
-    process.on('SIGINT', () => {
-      server.close(() => {
-        console.log('Server shutting down gracefully');
-        mongoose.connection.close(() => {
-          console.log('MongoDB connection closed');
-          process.exit(0);
-        });
-      });
-    });
-
   } catch (err) {
     console.error('Error starting server:', err.message);
     process.exit(1); // Exit process with failure code
