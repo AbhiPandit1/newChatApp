@@ -3,16 +3,17 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
+import cors from 'cors';
+import http from 'http'; // Import http to create server if not using it directly from socket.js
 
 import authRoutes from './routes/authRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import { app, server } from './socket/socket.js';
 
-// Load environment variables from .env file
+// Initialize environment variables
 dotenv.config();
 
-const __dirname = path.resolve();
+const app = express(); // Initialize express app
 const PORT = process.env.PORT || 5000;
 
 // Middleware setup
@@ -32,15 +33,34 @@ app.use(express.static(path.join(__dirname, '/frontend/dist')));
 const startServer = async () => {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGO_DB_URI);
-    console.log(`MongoDB is Connected ${process.env.MONGO_DB_URI}`);
+    await mongoose.connect(process.env.MONGO_DB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log(`MongoDB connected at ${process.env.MONGO_DB_URI}`);
+
+    // Create HTTP server
+    const server = http.createServer(app);
 
     // Start the server
     server.listen(PORT, () => {
-      console.log(`Server Running on port ${PORT}`);
+      console.log(`Server running on port ${PORT}`);
     });
+
+    // Optionally, handle server shutdown
+    process.on('SIGINT', () => {
+      server.close(() => {
+        console.log('Server shutting down gracefully');
+        mongoose.connection.close(() => {
+          console.log('MongoDB connection closed');
+          process.exit(0);
+        });
+      });
+    });
+
   } catch (err) {
     console.error('Error starting server:', err.message);
+    process.exit(1); // Exit process with failure code
   }
 };
 
